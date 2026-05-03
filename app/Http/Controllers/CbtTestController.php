@@ -49,11 +49,42 @@ class CbtTestController extends Controller
     public function show($id)
     {
         $test = CbtTest::with('questions')->findOrFail($id);
-        
-        // Randomize questions for the participant taking the test
-        $questions = $test->questions->shuffle();
-        $test->setRelation('questions', $questions);
-
         return response()->json($test);
+    }
+
+    public function updateQuestion(Request $request, $id, $questionId)
+    {
+        $test = CbtTest::findOrFail($id);
+        $question = $test->questions()->findOrFail($questionId);
+
+        $validated = $request->validate([
+            'text' => 'sometimes|string',
+            'option_a' => 'sometimes|string',
+            'option_b' => 'sometimes|string',
+            'option_c' => 'sometimes|string',
+            'option_d' => 'sometimes|string',
+            'correct_answer' => 'sometimes|string|in:A,B,C,D',
+        ]);
+
+        $question->update($validated);
+
+        return response()->json(['message' => 'Question updated successfully', 'question' => $question]);
+    }
+
+    public function destroyQuestion($id, $questionId)
+    {
+        $test = CbtTest::findOrFail($id);
+        $question = $test->questions()->findOrFail($questionId);
+        $question->delete();
+
+        return response()->json(['message' => 'Question deleted successfully']);
+    }
+
+    public function destroy($id)
+    {
+        $test = CbtTest::findOrFail($id);
+        $test->delete();
+
+        return response()->json(['message' => 'CBT Test deleted successfully']);
     }
 }

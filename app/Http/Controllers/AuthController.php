@@ -31,7 +31,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('creditHistory', 'attendance'),
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test'),
             'token' => $token
         ], 201);
     }
@@ -51,18 +51,28 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->status === 'suspended') {
+            throw ValidationException::withMessages([
+                'email' => ['Your account has been suspended. Please contact support.'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('creditHistory', 'attendance'),
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test'),
             'token' => $token
         ]);
     }
 
     public function me(Request $request)
     {
+        $user = $request->user();
+        if ($user->status === 'suspended') {
+            return response()->json(['message' => 'Account suspended'], 403);
+        }
         return response()->json([
-            'user' => $request->user()->load('creditHistory', 'attendance')
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test')
         ]);
     }
 
@@ -74,7 +84,26 @@ class AuthController extends Controller
 
     public function allUsers()
     {
-        $users = User::with(['creditHistory', 'attendance'])->where('role', 'participant')->get();
+        $users = User::with(['creditHistory', 'attendance', 'cbtResults.test'])->where('role', 'participant')->get();
         return response()->json($users);
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+        return response()->json(['message' => 'User deleted successfully']);
+    }
+
+    public function updateUserStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:active,suspended'
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->update(['status' => $validated['status']]);
+
+        return response()->json(['message' => 'User status updated', 'user' => $user]);
     }
 }

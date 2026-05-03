@@ -17,7 +17,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'joined'
+        'joined',
+        'status'
     ];
 
     protected $hidden = [
@@ -41,5 +42,10 @@ class User extends Authenticatable
     public function attendance()
     {
         return $this->hasOne(Attendance::class);
+    }
+
+    public function cbtResults()
+    {
+        return $this->hasMany(CbtResult::class);
     }
 }

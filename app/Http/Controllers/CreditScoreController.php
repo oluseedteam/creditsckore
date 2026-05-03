@@ -22,4 +22,22 @@ class CreditScoreController extends Controller
 
         return response()->json($score);
     }
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'score' => 'required|integer',
+            'note' => 'nullable|string',
+        ]);
+
+        $score = CreditScore::where('user_id', $request->user()->id)->findOrFail($id);
+        $score->update($validated);
+        return response()->json($score);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $score = CreditScore::where('user_id', $request->user()->id)->findOrFail($id);
+        $score->delete();
+        return response()->json(['message' => 'Deleted successfully']);
+    }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\CbtResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Models\CbtTest;
 
 class CbtResultController extends Controller
 {
@@ -24,6 +26,24 @@ class CbtResultController extends Controller
             'total_questions' => $validated['total_questions'],
             'answers' => $validated['answers'],
         ]);
+
+        $user = Auth::user();
+        $test = CbtTest::find($validated['cbt_test_id']);
+        
+        if ($user && $test) {
+            $course = $test->course;
+            $score = $validated['score'];
+            $total = $validated['total_questions'];
+            $pct = round(($score / $total) * 100);
+            
+            try {
+                Mail::raw("Hello {$user->name},\n\nYou have successfully completed the CBT Test for '{$course}'.\n\nYour Result: {$score}/{$total} ({$pct}%).\n\nYou can review your performance in your dashboard.\n\nBest,\nMyScoreNova Team", function($m) use ($user, $course) {
+                    $m->to($user->email)->subject("MyScoreNova - CBT Result: {$course}");
+                });
+            } catch (\Exception $e) {
+                // Ignore email failure
+            }
+        }
 
         return response()->json(['message' => 'Test result saved successfully', 'result' => $result], 201);
     }

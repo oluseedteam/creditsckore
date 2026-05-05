@@ -16,7 +16,7 @@ class CbtTestController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'subject' => 'required|string|max:255',
+            'course' => 'required|string|max:255',
             'timeLapsMinutes' => 'required|integer',
             'questions' => 'required|array',
             'questions.*.text' => 'required|string',
@@ -28,7 +28,7 @@ class CbtTestController extends Controller
         ]);
 
         $test = CbtTest::create([
-            'subject' => $validated['subject'],
+            'course' => $validated['course'],
             'timeLapsMinutes' => $validated['timeLapsMinutes'],
         ]);
 
@@ -50,6 +50,24 @@ class CbtTestController extends Controller
     {
         $test = CbtTest::with('questions')->findOrFail($id);
         return response()->json($test);
+    }
+
+    public function addQuestion(Request $request, $id)
+    {
+        $test = CbtTest::findOrFail($id);
+
+        $validated = $request->validate([
+            'text' => 'required|string',
+            'option_a' => 'required|string',
+            'option_b' => 'required|string',
+            'option_c' => 'required|string',
+            'option_d' => 'required|string',
+            'correct_answer' => 'required|string|in:A,B,C,D',
+        ]);
+
+        $question = $test->questions()->create($validated);
+
+        return response()->json(['message' => 'Question added successfully', 'question' => $question], 201);
     }
 
     public function updateQuestion(Request $request, $id, $questionId)

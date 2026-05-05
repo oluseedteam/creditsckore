@@ -9,7 +9,7 @@ class CbtTest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['subject', 'timeLapsMinutes'];
+    protected $fillable = ['course', 'timeLapsMinutes'];
 
     public function questions()
     {

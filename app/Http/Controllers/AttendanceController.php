@@ -21,4 +21,20 @@ class AttendanceController extends Controller
 
         return response()->json($attendance);
     }
+
+    public function markDaily(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+            'status' => 'required|in:present,absent',
+        ]);
+
+        $attendance = \App\Models\DailyAttendance::updateOrCreate(
+            ['user_id' => $validated['user_id'], 'date' => $validated['date']],
+            ['status' => $validated['status']]
+        );
+
+        return response()->json($attendance);
+    }
 }

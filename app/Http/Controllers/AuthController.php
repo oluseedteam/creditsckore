@@ -65,7 +65,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test'),
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'),
             'token' => $token
         ]);
     }
@@ -77,7 +77,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Account suspended'], 403);
         }
         return response()->json([
-            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test')
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances')
         ]);
     }
 
@@ -94,7 +94,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully',
-            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test')
+            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances')
         ]);
     }
 
@@ -106,7 +106,7 @@ class AuthController extends Controller
 
     public function allUsers()
     {
-        $users = User::with(['creditHistory', 'attendance', 'cbtResults.test'])->where('role', 'participant')->get();
+        $users = User::with(['creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'])->where('role', 'participant')->get();
         return response()->json($users);
     }
 

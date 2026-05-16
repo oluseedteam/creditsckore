@@ -50,4 +50,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(CbtResult::class);
     }
+
+    public function dailyAttendances()
+    {
+        return $this->hasMany(DailyAttendance::class)->orderBy('date', 'asc');
+    }
 }

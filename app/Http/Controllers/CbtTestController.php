@@ -46,6 +46,21 @@ class CbtTestController extends Controller
         return response()->json(['message' => 'CBT Test created successfully', 'test' => $test->load('questions')], 201);
     }
 
+    public function update(Request $request, $id)
+    {
+        $test = CbtTest::findOrFail($id);
+        
+        $validated = $request->validate([
+            'course' => 'sometimes|string|max:255',
+            'timeLapsMinutes' => 'sometimes|integer',
+            'status' => 'sometimes|in:draft,published',
+        ]);
+
+        $test->update($validated);
+
+        return response()->json(['message' => 'CBT Test updated', 'test' => $test]);
+    }
+
     public function show($id)
     {
         $test = CbtTest::with('questions')->findOrFail($id);

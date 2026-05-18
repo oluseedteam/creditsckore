@@ -19,6 +19,14 @@ class CbtResultController extends Controller
             'answers' => 'required|array',
         ]);
 
+        $existingResult = CbtResult::where('cbt_test_id', $validated['cbt_test_id'])
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if ($existingResult) {
+            return response()->json(['message' => 'You have already taken this exam.'], 403);
+        }
+
         $result = CbtResult::create([
             'cbt_test_id' => $validated['cbt_test_id'],
             'user_id' => Auth::id(),

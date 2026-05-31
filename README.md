@@ -1,59 +1,62 @@
-# CreadIt Backend (Laravel)
+# MyScoreNova - Fullstack Ecosystem (Backend)
 
-This is the fully functioning Laravel API for the CreadIt Credit Score and CBT Testing Platform.
+This is the central intelligence API for the MyScoreNova Credit Score and CBT Testing Platform. It handles authentication, real-time credit trajectory tracking, and session-based attendance marking.
 
-## Requirements
-- PHP 8.2 or greater
-- Composer
-- SQLite (default) or MySQL for cPanel deployment
+## 🚀 Architectural Stack
+- **Engine**: Laravel 11.x
+- **Language**: PHP 8.2+
+- **Security**: Laravel Sanctum (Token-based SPA Auth)
+- **Database**: SQLite (Development) / MySQL (Production)
+- **Mail**: Native Laravel Mailers (Configured for SMTP)
 
-## Installation & Local Setup
+## 🛠 Installation & Local Setup
 
-1. **Install Dependencies**:
-   \`\`\`bash
+1. **Clone & Dependencies**:
+   ```bash
    composer install
-   \`\`\`
+   ```
 
 2. **Environment Configuration**:
-   - Copy `.env.example` to `.env` (already done if generated locally).
-   - Generate your app key:
-   \`\`\`bash
+   - Copy `.env.example` to `.env`
+   - Generate your encryption key:
+   ```bash
    php artisan key:generate
-   \`\`\`
-   - By default, `DB_CONNECTION` is set to `sqlite`.
+   ```
 
-3. **Migrate the Database**:
-   \`\`\`bash
-   php artisan migrate:fresh
-   \`\`\`
-   *(Note: This creates the tables for Users, CreditScores, Attendances, and CBT components)*
+3. **Database Initialization**:
+   ```bash
+   touch database/database.sqlite
+   php artisan migrate:fresh --seed
+   ```
+   *(Initializes schemas for Users, CreditScores, Attendances, and CBT Infrastructure)*
 
-4. **Run the API Server Locally**:
-   \`\`\`bash
+4. **Serve the API**:
+   ```bash
    php artisan serve
-   \`\`\`
-   The API will be accessible at `http://localhost:8000/api`.
+   ```
+   The API will be available at `http://localhost:8000/api`.
 
-## Available API Endpoints
+## 🛰 Core API Blueprint
 
-### Authentication
-- `POST /api/register` - Register a new participant
-- `POST /api/login` - Login to account
-- `POST /api/logout` - Securely log out (Sanctum Authenticated)
-- `GET /api/me` - Get current user profile (with related credit scores and attendance details)
-- `GET /api/users` - Fetch all participants (Admin route)
+### Authentication Cluster
+- `POST /api/register` - Participant onboarding (status defaults to `pending`)
+- `POST /api/login` - Handshake & Token issuance
+- `POST /api/me` - Synchronize session state & relations
 
-### Core Features
-- `POST /api/credit-scores` - Update/add a credit score for the user
-- `POST /api/attendances` - Log/Update class attendance
+### Metrics & Analytics
+- `POST /api/credit-scores` - Log monthly credit position
+- `POST /api/attendance/mark` - Session-based attendance tally (increments lifetime count)
+- `POST /api/attendance/log` - Update aggregate attendance profile
 
-### CBT Dashboard
-- `POST /api/cbt-tests` - For Admins to configure a new CBT Test (subject, time, questions structure)
-- `GET /api/cbt-tests` - Fetch all tests (Admin / Participant)
-- `GET /api/cbt-tests/{id}` - Start a test (Fetches single test and auto-randomizes questions logic in controller)
+### Assessment Engine
+- `GET  /api/cbt-tests` - Discovery of published assessments
+- `POST /api/cbt-results` - Submit completion data & triggerPass/Fail analytics
 
-### Deployment to cPanel
-When you upload this to cPanel:
-1. Update your `.env` to set `DB_CONNECTION=mysql` and apply your cPanel database credentials (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
-2. Run database migrations on the cPanel server (or export your local SQL and import to phpMyAdmin).
-3. Update the frontend's API Base URL to point to your new live domain `https://yourdomain.com/api` instead of `http://localhost:8000/api`.
+## 🌍 Production Guidelines (cPanel/VPS)
+1. **DB Switch**: Update `.env` to `DB_CONNECTION=mysql`.
+2. **Path Optimization**: Ensure `APP_URL` points to your live domain.
+3. **Storage Perms**: Run `chmod -R 775 storage bootstrap/cache`.
+4. **CORS**: Verify `config/cors.php` allows your frontend domain.
+
+---
+*Built for High-Trust Financial Literacy Frameworks.*

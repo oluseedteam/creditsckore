@@ -23,8 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/credit-scores', [CreditScoreController::class, 'store']);
     Route::put('/credit-scores/{id}', [CreditScoreController::class, 'update']);
     Route::delete('/credit-scores/{id}', [CreditScoreController::class, 'destroy']);
-    Route::post('/attendances', [AttendanceController::class, 'update']);
-    Route::post('/daily-attendances', [AttendanceController::class, 'markDaily']);
+    Route::post('/attendance/log', [AttendanceController::class, 'update']);
+    Route::post('/attendance/mark', [AttendanceController::class, 'markDaily']);
     Route::post('/cbt-results', [CbtResultController::class, 'store']);
     Route::get('/cbt-results', [CbtResultController::class, 'index']);
     Route::get('/cbt-results/me', [CbtResultController::class, 'userResults']);

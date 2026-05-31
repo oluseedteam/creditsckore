@@ -30,11 +30,20 @@ class AttendanceController extends Controller
             'status' => 'required|in:present,absent',
         ]);
 
-        $attendance = \App\Models\DailyAttendance::updateOrCreate(
+        $attendanceDaily = \App\Models\DailyAttendance::updateOrCreate(
             ['user_id' => $validated['user_id'], 'date' => $validated['date']],
             ['status' => $validated['status']]
         );
 
-        return response()->json($attendance);
+        // Update aggregate attendance - increment 'attended' if status is present
+        if ($validated['status'] === 'present') {
+            $agg = \App\Models\Attendance::firstOrCreate(
+                ['user_id' => $validated['user_id']],
+                ['total' => 0, 'attended' => 0]
+            );
+            $agg->increment('attended');
+        }
+
+        return response()->json($attendanceDaily);
     }
 }

@@ -6,7 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use RuntimeException;
 
 class User extends Authenticatable
 {
@@ -34,6 +36,44 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function verifyPassword(string $plainPassword): bool
+    {
+        $hashedPassword = $this->getAuthPassword();
+
+        if ($hashedPassword === null || $hashedPassword === '') {
+            return false;
+        }
+
+        if (Hash::isHashed($hashedPassword)) {
+            try {
+                return Hash::check($plainPassword, $hashedPassword);
+            } catch (RuntimeException) {
+                return password_verify($plainPassword, $hashedPassword);
+            }
+        }
+
+        return hash_equals($hashedPassword, $plainPassword);
+    }
+
+    public function rehashPasswordIfRequired(string $plainPassword): void
+    {
+        $hashedPassword = $this->getAuthPassword();
+
+        if (! Hash::isHashed($hashedPassword)) {
+            $this->forceFill(['password' => $plainPassword])->save();
+
+            return;
+        }
+
+        try {
+            if (Hash::needsRehash($hashedPassword)) {
+                $this->forceFill(['password' => $plainPassword])->save();
+            }
+        } catch (RuntimeException) {
+            $this->forceFill(['password' => $plainPassword])->save();
+        }
     }
 
     public function creditHistory()

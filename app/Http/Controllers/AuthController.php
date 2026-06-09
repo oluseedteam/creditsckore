@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
 
@@ -21,7 +20,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
             'role' => 'participant',
             'status' => 'pending',
         ]);
@@ -44,11 +43,13 @@ class AuthController extends Controller
 
         $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (!$user || !$user->verifyPassword($validated['password'])) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid email or password.'],
             ]);
         }
+
+        $user->rehashPasswordIfRequired($validated['password']);
 
         if ($user->status === 'suspended') {
             throw ValidationException::withMessages([

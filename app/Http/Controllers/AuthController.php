@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -67,7 +67,7 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'),
-            'token' => $token
+            'token' => $token,
         ]);
     }
 

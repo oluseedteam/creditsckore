@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    # Set the destination path where your website files should be deployed.
+    # Replace 'username' with your actual cPanel username if needed (e.g. /home/username/public_html)
+    - export DEPLOYPATH=/home/$USER/public_html
+    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp .htaccess $DEPLOYPATH

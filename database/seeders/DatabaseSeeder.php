@@ -123,5 +123,39 @@ class DatabaseSeeder extends Seeder
                 $test->questions()->create($q);
             }
         }
+
+        // Sample Curriculum Frameworks if none exist
+        if (\App\Models\CurriculumFramework::count() === 0) {
+            $modules = [
+                [
+                    'week' => 1,
+                    'title' => 'Credit Fundamentals & Bureau Reporting',
+                    'topics' => ['FICO vs VantageScore algorithms', 'Understanding credit utilization thresholds', 'How to read a 3-bureau credit report'],
+                    'content' => 'This module establishes core competencies in credit bureau mechanics, scoring models, and derogatory mark mitigation.',
+                ],
+                [
+                    'week' => 2,
+                    'title' => 'Debt Optimization & Budgetary Frameworks',
+                    'topics' => ['Snowball vs Avalanche debt strategies', 'Debt-to-Income (DTI) ratio calculations', 'Automated savings systems'],
+                    'content' => 'Learn how to optimize household cashflow to maximize monthly credit score improvements.',
+                ],
+                [
+                    'week' => 3,
+                    'title' => 'Trade Line Engineering & Credit Repair',
+                    'topics' => ['Strategic authorized user tradelines', 'Credit bureau dispute strategies (FCRA)', 'Secured cards and builder loans'],
+                    'content' => 'Deep dive into credit rebuilding tools, dispute templates, and rapid score elevation techniques.',
+                ],
+                [
+                    'week' => 4,
+                    'title' => 'Mortgage Readiness & Loan Underwriting',
+                    'topics' => ['FHA vs Conventional vs USDA loan criteria', 'Down payment assistance programs', 'Closing costs and final escrow preparation'],
+                    'content' => 'Final step: Prepare all institutional documentation for underwriting approval and lock in prime loan terms.',
+                ],
+            ];
+
+            foreach ($modules as $m) {
+                \App\Models\CurriculumFramework::create($m);
+            }
+        }
     }
 }

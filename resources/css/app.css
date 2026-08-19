@@ -1,11 +1,217 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
+/* ================= THEME ================= */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+  /* Fonts */
+  --font-sans: "Inter", "DM Sans", system-ui, sans-serif;
+  --font-display: "Outfit", "Playfair Display", Georgia, serif;
+  --font-mono: "DM Mono", monospace;
+
+  /* Client Brand Colors - MyScoreNova */
+  --color-brand-teal: #066A6F;      /* Main titles & Key shapes */
+  --color-brand-teal-light: #0d8a90;
+  --color-brand-navy: #102A43;      /* Strong headings & Dark text */
+  --color-brand-green: #2FBF71;     /* Money themes & Progress */
+  --color-brand-gold: #F4B000;      /* Highlights, badges & Numbers */
+  --color-brand-coral: #F56A6A;     /* Buttons & Action steps */
+
+  /* Neutrals */
+  --color-brand-white: #F8FAFB;     /* Slide/Page backgrounds */
+  --color-brand-light-gray: #E3E6EC; /* Boxes, sidebars & Tables */
+  --color-brand-charcoal: #111827;   /* Body text */
+  --color-brand-muted: #6B7280;      /* Captions & Footnotes */
+
+  /* Shadows - Elevated for Premium aesthetic */
+  --shadow-glow-teal: 0 10px 30px rgba(6, 106, 111, 0.15);
+  --shadow-glow-coral: 0 10px 30px rgba(245, 106, 106, 0.2);
+  --shadow-card: 0 15px 45px -10px rgba(16, 42, 67, 0.04), 0 5px 15px -5px rgba(0, 0, 0, 0.02);
+  --shadow-card-hover: 0 35px 70px -15px rgba(16, 42, 67, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ================= BASE ================= */
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-brand-charcoal);
+    background-color: var(--color-brand-white);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-teal);
+    color: white;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-teal); }
+}
+
+/* ================= COMPONENTS ================= */
+@layer components {
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, var(--color-brand-coral) 0%, #eb5c5c 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-glow-coral);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(245, 106, 106, 0.3);
+    filter: brightness(105%);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.75rem;
+    background: white;
+    border: 1px solid var(--color-brand-light-gray);
+    color: var(--color-brand-navy);
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  }
+
+  .btn-secondary:hover {
+    background: #F8FAFC;
+    border-color: var(--color-brand-teal);
+    color: var(--color-brand-teal);
+    transform: translateY(-1px);
+  }
+
+  .card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(227, 230, 236, 0.5);
+    box-shadow: var(--shadow-card);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+    z-index: 10;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-6px);
+    border-color: rgba(6, 106, 111, 0.1);
+  }
+
+  .chart-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(227, 230, 236, 0.5);
+    box-shadow: var(--shadow-card);
+    padding: 1.75rem;
+  }
+
+  .chart-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-brand-navy);
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+  }
+  
+  .chart-sub {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-brand-muted);
+    margin-bottom: 1.75rem;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: 1rem;
+    border: 1.5px solid #F1F5F9;
+    color: var(--color-brand-charcoal);
+    background: #F8FAFC;
+    transition: all 0.2s;
+    font-size: 0.9375rem;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-brand-teal);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(6, 106, 111, 0.05);
+  }
+}
+
+/* ================= UTILITIES ================= */
+@layer utilities {
+  .bg-mesh {
+    background-color: var(--color-brand-white);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(6, 106, 111, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(47, 191, 113, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(244, 176, 0, 0.03) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(245, 106, 106, 0.03) 0px, transparent 50%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-brand-navy) 0%, var(--color-brand-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .bg-glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .premium-blur {
+    position: relative;
+  }
+
+  .premium-blur::after {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    background: inherit;
+    filter: blur(40px) opacity(0.15);
+    z-index: -1;
+    border-radius: inherit;
+  }
 }

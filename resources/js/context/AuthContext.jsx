@@ -37,11 +37,13 @@ export function AuthProvider({ children }) {
         return
       }
 
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       try {
         const res = await api.get('/me')
         setUser(formatUserData(res.data.user))
       } catch {
         localStorage.removeItem('token')
+        delete api.defaults.headers.common['Authorization']
         setUser(null)
       } finally {
         setLoading(false)
@@ -60,6 +62,7 @@ export function AuthProvider({ children }) {
       }
 
       localStorage.setItem('token', res.data.token)
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`
       const u = formatUserData(res.data.user)
       setUser(u)
       return u
@@ -77,6 +80,7 @@ export function AuthProvider({ children }) {
       }
 
       localStorage.setItem('token', res.data.token)
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`
       const u = formatUserData(res.data.user)
       setUser(u)
       return u
@@ -92,6 +96,7 @@ export function AuthProvider({ children }) {
       // ignore — token may already be invalid
     }
     localStorage.removeItem('token')
+    delete api.defaults.headers.common['Authorization']
     setUser(null)
   }
 

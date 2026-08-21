@@ -54,6 +54,7 @@ export function setupAuthInterceptor(onUnauthorized) {
 
       if (error.response?.status === 401 && !isAuthRoute) {
         localStorage.removeItem('token')
+        delete api.defaults.headers.common['Authorization']
         onUnauthorized?.()
       }
 

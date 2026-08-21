@@ -2,9 +2,17 @@
     RewriteEngine On
 
     # Forward Authorization header (Bearer tokens)
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
 
     # Send everything to the Laravel front controller
     RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<IfModule mod_setenvif.c>
+    SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+<IfModule mod_authz_core.c>
+    CGIPassAuth On
 </IfModule>

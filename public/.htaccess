@@ -28,7 +28,3 @@
     SetEnvIfNoCase ^Authorization$ "(.+)" HTTP_AUTHORIZATION=$1
 </IfModule>
 
-<IfModule mod_authz_core.c>
-    CGIPassAuth On
-</IfModule>
-

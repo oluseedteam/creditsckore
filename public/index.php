@@ -13,6 +13,15 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
+// Polyfill for mb_split if mbstring extension is disabled on host
+if (!function_exists('mb_split')) {
+    function mb_split(string $pattern, string $string, int $limit = -1)
+    {
+        $delimiter = '/';
+        return preg_split($delimiter . str_replace($delimiter, '\\' . $delimiter, $pattern) . $delimiter . 'u', $string, $limit);
+    }
+}
+
 // Normalize Authorization header across CGI / FastCGI / cPanel environments
 if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
     if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {

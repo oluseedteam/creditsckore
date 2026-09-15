@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             ForceJsonResponse::class,
+        ]);
+
+        // Register 'admin' as a named middleware alias
+        $middleware->alias([
+            'admin' => EnsureAdmin::class,
         ]);
 
         $middleware->redirectGuestsTo(function (Request $request) {

@@ -13,6 +13,7 @@ class ForceJsonResponse
      */
     public function handle(Request $request, Closure $next): Response
     {
+        auth()->forgetGuards();
         $request->headers->set('Accept', 'application/json');
 
         if (!$request->headers->has('Authorization')) {

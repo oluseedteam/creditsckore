@@ -9,35 +9,42 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Register a new participant.
+     * Account starts as 'pending' — admin must approve before login is allowed.
+     */
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'name'     => $validated['name'],
+            'email'    => $validated['email'],
             'password' => $validated['password'],
-            'role' => 'participant',
-            'status' => 'pending',
+            'role'     => 'participant',
+            'status'   => 'pending',
         ]);
 
-        // initialize attendance
+        // Initialise an empty attendance record for this user
         $user->attendance()->create(['total' => 0, 'attended' => 0]);
 
-        // Do not auto-login, return pending status
         return response()->json([
-            'message' => 'Verification pending. Please wait for admin approval.'
+            'message' => 'Registration successful. Your account is pending admin approval.'
         ], 201);
     }
 
+    /**
+     * Authenticate a user and return a Sanctum token.
+     * Blocks pending and suspended accounts with clear error messages.
+     */
     public function login(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|string|email',
+            'email'    => 'required|string|email',
             'password' => 'required|string',
         ]);
 
@@ -49,7 +56,15 @@ class AuthController extends Controller
             ]);
         }
 
+        // Re-hash legacy plain-text passwords transparently
         $user->rehashPasswordIfRequired($validated['password']);
+
+        // Check status — pending before suspended so the user gets the most actionable message
+        if ($user->status === 'pending') {
+            throw ValidationException::withMessages([
+                'email' => ['Your account is pending admin approval. Please wait for verification.'],
+            ]);
+        }
 
         if ($user->status === 'suspended') {
             throw ValidationException::withMessages([
@@ -57,60 +72,80 @@ class AuthController extends Controller
             ]);
         }
 
-        if ($user->status === 'pending') {
-            throw ValidationException::withMessages([
-                'email' => ['Verification pending. Please wait for admin approval.'],
-            ]);
-        }
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'),
+            'user'  => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'),
             'token' => $token,
         ]);
     }
 
+    /**
+     * Return the currently authenticated user's full profile.
+     */
     public function me(Request $request)
     {
         $user = $request->user();
+
         if ($user->status === 'suspended') {
-            return response()->json(['message' => 'Account suspended'], 403);
+            return response()->json(['message' => 'Your account has been suspended.'], 403);
         }
+
         return response()->json([
             'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances')
         ]);
     }
 
+    /**
+     * Update the authenticated user's own profile fields.
+     */
     public function updateProfile(Request $request)
     {
-        $user = $request->user();
+        $user      = $request->user();
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'about' => 'nullable|string',
-            'profile_picture' => 'nullable|string'
+            'name'            => 'sometimes|string|max:255',
+            'about'           => 'nullable|string',
+            'profile_picture' => 'nullable|string',
         ]);
 
         $user->update($validated);
 
         return response()->json([
             'message' => 'Profile updated successfully',
-            'user' => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances')
+            'user'    => $user->load('creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances')
         ]);
     }
 
+    /**
+     * Revoke the current access token (logout).
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    public function allUsers()
+    /**
+     * [Admin] List all users.
+     * Supports optional ?status= filter (active | suspended | pending).
+     * Defaults to returning ALL users (including pending) so admin can see who needs approval.
+     */
+    public function allUsers(Request $request)
     {
-        $users = User::with(['creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'])->where('role', 'participant')->get();
-        return response()->json($users);
+        $query = User::with(['creditHistory', 'attendance', 'cbtResults.test', 'dailyAttendances'])
+                     ->where('role', 'participant');
+
+        if ($request->filled('status')) {
+            $request->validate(['status' => 'in:active,suspended,pending']);
+            $query->where('status', $request->status);
+        }
+
+        return response()->json($query->get());
     }
 
+    /**
+     * [Admin] Permanently delete a user account.
+     */
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
@@ -118,23 +153,27 @@ class AuthController extends Controller
         return response()->json(['message' => 'User deleted successfully']);
     }
 
+    /**
+     * [Admin] Approve (active) or suspend a user account.
+     * Allowed transitions: pending → active, active ↔ suspended.
+     * Sends an approval email when status moves from 'pending' to 'active'.
+     */
     public function updateUserStatus(Request $request, $id)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:active,suspended,pending'
+            'status' => 'required|string|in:active,suspended',
         ]);
 
-        $user = User::findOrFail($id);
+        $user      = User::findOrFail($id);
         $oldStatus = $user->status;
         $user->update(['status' => $validated['status']]);
 
+        // Send approval email when admin activates a previously pending account
         if ($oldStatus === 'pending' && $validated['status'] === 'active') {
             try {
-                Mail::raw("Congratulations {$user->name},\n\nYour account has been successfully verified! You can now log in to the portal and access your dashboard.\n\nBest Regards,\nMyScoreNova Team", function($m) use ($user) {
-                    $m->to($user->email)->subject('MyScoreNova - Account Verified');
-                });
+                Mail::to($user->email)->send(new \App\Mail\AccountVerified($user));
             } catch (\Exception $e) {
-                // Ignore email errors if smtp isn't configured
+                // Silently ignore email errors when SMTP is not configured
             }
         }
 

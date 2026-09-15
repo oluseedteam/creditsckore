@@ -15,6 +15,27 @@ use App\Http\Controllers\DirectMessageController;
 Route::post('/login',    [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+// Web-based migration endpoint for cPanel environments where CLI lacks DOM extension
+Route::get('/run-migration', function (\Illuminate\Http\Request $request) {
+    $secret = $request->query('secret');
+    if ($secret !== 'myscorenova-migrate' && $secret !== env('APP_KEY')) {
+        return response()->json(['error' => 'Unauthorized. Provide ?secret=myscorenova-migrate'], 403);
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return response()->json([
+            'status' => 'success',
+            'output' => \Illuminate\Support\Facades\Artisan::output(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 // ─────────────────────────────────────────────
 // Authenticated routes (any active/valid user)
 // ─────────────────────────────────────────────

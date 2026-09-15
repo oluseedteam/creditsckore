@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import { Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { motion } from 'framer-motion'
@@ -7,18 +7,27 @@ import { motion } from 'framer-motion'
 const TEAL='#066A6F', NAVY='#102A43', PGREEN='#2FBF71'
 
 export default function AdminLoginPage() {
-  const { login } = useAuth()
+  const { login, user } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email:'', password:'' })
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Redirect once the user state is committed after login (fixes race condition)
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin', { replace: true })
+    } else if (user?.role === 'participant') {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate])
+
   const handleSubmit = async (e) => {
     e.preventDefault(); setError(''); setLoading(true)
-    try { 
-      const user = await login(form.email, form.password)
-      navigate(user.role==='admin'?'/admin':'/dashboard') 
+    try {
+      await login(form.email, form.password)
+      // Navigation is handled by the useEffect above once user state commits
     }
     catch (err) { setError(err.message) }
     finally { setLoading(false) }
